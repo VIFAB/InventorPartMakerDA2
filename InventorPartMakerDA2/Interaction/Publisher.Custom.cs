@@ -50,7 +50,7 @@ namespace Interaction
         /// </summary>
         private static List<string> GetActivityCommandLine()
         {
-            return new List<string> { $"$(engine.path)\\InventorCoreConsole.exe /al $(appbundles[{Constants.Activity.Id}].path) /i $(args[{Constants.Parameters.InventorDoc}].path)" };
+            return new List<string> { $"$(engine.path)\\InventorCoreConsole.exe /al $(appbundles[{Constants.Activity.Id}].path) " };
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Interaction
                             new Parameter
                             {
                                 Verb = Verb.Get,
-                                Description = "IPT file to process"
+                                Description = "XML file to process"
                             }
                         },
                         {
@@ -74,7 +74,7 @@ namespace Interaction
                             {
                                 Verb = Verb.Put,
                                 LocalName = "result.ipt",
-                                Description = "Resulting IPT",
+                                Description = "Resulting IAM",
                                 Ondemand = false,
                                 Required = false
                             }
@@ -94,7 +94,7 @@ namespace Interaction
                             Constants.Parameters.InventorDoc,
                             new XrefTreeArgument
                             {
-                                Url = "!!! CHANGE ME !!!"
+                                Url = "https://developer.api.autodesk.com/oss/v2/signedresources/8a845097-1ec1-462b-bd0b-7557b5b6751c?region=US"
                             }
                         },
                         {
@@ -102,7 +102,7 @@ namespace Interaction
                             new XrefTreeArgument
                             {
                                 Verb = Verb.Put,
-                                Url = "!!! CHANGE ME !!!"
+                                Url = "https://developer.api.autodesk.com/oss/v2/signedresources/93de045c-2147-4449-b50e-a137a7d0aa5f?region=US"
                             }
                         }
                     };

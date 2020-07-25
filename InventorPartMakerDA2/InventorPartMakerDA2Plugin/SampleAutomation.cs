@@ -24,6 +24,8 @@ using Inventor;
 using Autodesk.Forge.DesignAutomation.Inventor.Utils;
 using System.Xml;
 using System.IO;
+using System.IO.Compression;
+
 
 namespace InventorPartMakerDA2Plugin
 {
@@ -46,7 +48,7 @@ namespace InventorPartMakerDA2Plugin
         public void RunWithArguments(Document doc, NameValueMap map)
         {
             
-            //LogTrace("Initialiting");
+            LogTrace("Initialiting");
             PartDocument oPartDoc = (PartDocument)inventorApplication.Documents.Add(DocumentTypeEnum.kPartDocumentObject, inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kPartDocumentObject), true);
             LogTrace("Part template opened");
             TransientGeometry oTG = inventorApplication.TransientGeometry;
@@ -58,6 +60,7 @@ namespace InventorPartMakerDA2Plugin
             string projectDir = Directory.GetParent(currentDir).Parent.FullName;
             LogTrace("Reading XML input file from " + projectDir);
             xmlDoc.Load(System.IO.Path.Combine(projectDir, "react-test-output.xml"));
+            //xmlDoc.Load("react-test-output.xml");
             //xmlDoc.Load("C:\\webapps\\IpartCreator\\React-BIM-output.xml");
             XmlNodeList FloorList = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor");
             XmlNodeList FloorPointList = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor/BoundaryPoints/Point");
@@ -111,6 +114,7 @@ namespace InventorPartMakerDA2Plugin
                 ExtrudeFeature oExtrude = oPartComDef.Features.ExtrudeFeatures.Add(oExtrudeDef);
 
                 string PartPath = projectDir + "/results/" + ComponentName[i].InnerText + i + ".ipt";
+                //string PartPath = ComponentName[i].InnerText + i + ".ipt";
                 oPartDoc.SaveAs(PartPath, false);
 
                 oExtrude.Delete();
@@ -131,10 +135,14 @@ namespace InventorPartMakerDA2Plugin
                 oStep = oStep + 150;
                 oPos.SetTranslation(oTG.CreateVector(oStep, oStep, 0), false);
                 string PartPath = projectDir + "/results/" + ComponentName[icomp].InnerText + icomp + ".ipt";
+                //string PartPath = ComponentName[icomp].InnerText + icomp + ".ipt";
                 ComponentOccurrence oOcc = oAssyCompOccs.Add(PartPath, oPos);
             }
 
             oAssyDoc.SaveAs(projectDir + "/results/result.iam", false);
+            //oAssyDoc.SaveAs("result.iam", false);
+            oAssyDoc.Close();
+            ZipFile.CreateFromDirectory(projectDir + "/results", projectDir + "/forgeResult.zip");
         }
 
         #region Logging utilities
