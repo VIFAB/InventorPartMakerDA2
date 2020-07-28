@@ -20,6 +20,7 @@ namespace Interaction
             new Command { Description = "Post app bundle",          Action = (publisher) => publisher.PostAppBundleAsync() },
             new Command { Description = "Post activity",            Action = (publisher) => publisher.PublishActivityAsync() },
             new Command { Description = "Run work item",            Action = (publisher) => publisher.RunWorkItemAsync() },
+            new Command { Description = "Authenticate",            Action = (publisher) => publisher.GetInternalAsync() },
             new Command { Description = "List available engines",   Action = (publisher) => publisher.ListEnginesAsync() },
             new Command { Description = "Clean existing app bundle and activity",   Action = (publisher) => publisher.CleanExistingAppActivityAsync() },
         };

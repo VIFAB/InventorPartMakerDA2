@@ -57,11 +57,14 @@ namespace InventorPartMakerDA2Plugin
            
             XmlDocument xmlDoc = new XmlDocument();
             string currentDir = System.IO.Directory.GetCurrentDirectory();
-            string projectDir = Directory.GetParent(currentDir).Parent.FullName;
-            LogTrace("Reading XML input file from " + projectDir);
-            xmlDoc.Load(System.IO.Path.Combine(projectDir, "react-test-output.xml"));
-            //xmlDoc.Load("react-test-output.xml");
-            //xmlDoc.Load("C:\\webapps\\IpartCreator\\React-BIM-output.xml");
+            string bucketUrl = System.IO.Path.Combine(currentDir, "xmlFile");
+            
+            LogTrace("Reading XML input file from " + currentDir);
+           
+            xmlDoc.Load(bucketUrl);
+
+            LogTrace("Reading XML input file finished");
+
             XmlNodeList FloorList = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor");
             XmlNodeList FloorPointList = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor/BoundaryPoints/Point");
             XmlNodeList ComponentName = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor/ComponentName");
@@ -69,7 +72,8 @@ namespace InventorPartMakerDA2Plugin
             XmlNodeList PointY = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor/BoundaryPoints/Point/Y");
             XmlNodeList PointZ = xmlDoc.DocumentElement.SelectNodes("/Building/Floors/Floor/BoundaryPoints/Point/Z");
 
-            
+
+            LogTrace("Starting Creation part loop");
 
             for (int i=0; i < FloorList.Count; i++)
             {
@@ -113,15 +117,19 @@ namespace InventorPartMakerDA2Plugin
                 oExtrudeDef.SetDistanceExtent(oPartComDef.Parameters.UserParameters.AddByExpression("length","8", UnitsTypeEnum.kMillimeterLengthUnits), PartFeatureExtentDirectionEnum.kPositiveExtentDirection);
                 ExtrudeFeature oExtrude = oPartComDef.Features.ExtrudeFeatures.Add(oExtrudeDef);
 
-                string PartPath = projectDir + "/results/" + ComponentName[i].InnerText + i + ".ipt";
+                LogTrace("Saving part");
+
+                string PartPath = currentDir + "/results/" + ComponentName[i].InnerText + i + ".ipt";
                 //string PartPath = ComponentName[i].InnerText + i + ".ipt";
                 oPartDoc.SaveAs(PartPath, false);
-
+                LogTrace("Part Saved");
                 oExtrude.Delete();
                 
             }
 
             oPartDoc.Close(false);
+
+            LogTrace("Opening Assembly");
 
             AssemblyDocument oAssyDoc = (AssemblyDocument)inventorApplication.Documents.Add(DocumentTypeEnum.kAssemblyDocumentObject, inventorApplication.FileManager.GetTemplateFile(DocumentTypeEnum.kAssemblyDocumentObject), true);
             AssemblyComponentDefinition oAssyComDef = oAssyDoc.ComponentDefinition;
@@ -130,19 +138,22 @@ namespace InventorPartMakerDA2Plugin
             int oStep = 0;
             int icomp;
             int numite = FloorPointList.Count / FloorList.Count;
+
+            LogTrace("Starting loop for placing parts");
+
             for (icomp=0; icomp <= numite; icomp++)
             {
                 oStep = oStep + 150;
                 oPos.SetTranslation(oTG.CreateVector(oStep, oStep, 0), false);
-                string PartPath = projectDir + "/results/" + ComponentName[icomp].InnerText + icomp + ".ipt";
+                string PartPath = currentDir + "/results/" + ComponentName[icomp].InnerText + icomp + ".ipt";
                 //string PartPath = ComponentName[icomp].InnerText + icomp + ".ipt";
                 ComponentOccurrence oOcc = oAssyCompOccs.Add(PartPath, oPos);
             }
 
-            oAssyDoc.SaveAs(projectDir + "/results/result.iam", false);
+            oAssyDoc.SaveAs(currentDir + "/results/result.iam", false);
             //oAssyDoc.SaveAs("result.iam", false);
             oAssyDoc.Close();
-            ZipFile.CreateFromDirectory(projectDir + "/results", projectDir + "/forgeResult.zip");
+            ZipFile.CreateFromDirectory(currentDir + "/results", currentDir + "/forgeResult");
         }
 
         #region Logging utilities

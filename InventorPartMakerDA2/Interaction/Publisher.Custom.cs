@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using Autodesk.Forge.DesignAutomation.Model;
+using Microsoft.Extensions.Configuration;
+using Autodesk.Forge.Core;
+using Autodesk.Forge;
 
 namespace Interaction
 {
@@ -8,6 +11,8 @@ namespace Interaction
     /// </summary>
     internal partial class Publisher
     {
+       
+
         /// <summary>
         /// Constants.
         /// </summary>
@@ -17,6 +22,8 @@ namespace Interaction
             public static readonly string Engine = $"Autodesk.Inventor+{EngineVersion}";
 
             public const string Description = "PUT DESCRIPTION HERE";
+
+           
 
             internal static class Bundle
             {
@@ -44,6 +51,7 @@ namespace Interaction
             }
         }
 
+        
 
         /// <summary>
         /// Get command line for activity.
@@ -65,6 +73,7 @@ namespace Interaction
                             new Parameter
                             {
                                 Verb = Verb.Get,
+                                LocalName = "xmlFile",
                                 Description = "XML file to process"
                             }
                         },
@@ -73,8 +82,8 @@ namespace Interaction
                             new Parameter
                             {
                                 Verb = Verb.Put,
-                                LocalName = "result.ipt",
-                                Description = "Resulting IAM",
+                                LocalName = "forgeResult",
+                                Description = "Resulting ZIP",
                                 Ondemand = false,
                                 Required = false
                             }
@@ -85,8 +94,12 @@ namespace Interaction
         /// <summary>
         /// Get arguments for workitem.
         /// </summary>
+        /// 
+        
+
         private static Dictionary<string, IArgument> GetWorkItemArgs()
         {
+            
             // TODO: update the URLs below with real values
             return new Dictionary<string, IArgument>
                     {
@@ -94,16 +107,24 @@ namespace Interaction
                             Constants.Parameters.InventorDoc,
                             new XrefTreeArgument
                             {
-                                Url = "https://developer.api.autodesk.com/oss/v2/signedresources/8a845097-1ec1-462b-bd0b-7557b5b6751c?region=US"
-                            }
+                                Url = string.Format("https://developer.api.autodesk.com/oss/v2/buckets/{0}/objects/{1}", "reactbiminventor", "react-test-output.xml"),
+                                Headers = new Dictionary<string, string>()
+                                {
+                                     { "Authorization", "Bearer " + InternalToken.access_token}
+                                }
+        }
                         },
                         {
                             Constants.Parameters.OutputIpt,
                             new XrefTreeArgument
                             {
                                 Verb = Verb.Put,
-                                Url = "https://developer.api.autodesk.com/oss/v2/signedresources/93de045c-2147-4449-b50e-a137a7d0aa5f?region=US"
-                            }
+                                Url = string.Format("https://developer.api.autodesk.com/oss/v2/buckets/{0}/objects/{1}", "reactbiminventor", "forgeResult.zip"),
+                                Headers = new Dictionary<string, string>()
+                                {
+                                     { "Authorization", "Bearer " + InternalToken.access_token}
+                                }
+        }
                         }
                     };
         }

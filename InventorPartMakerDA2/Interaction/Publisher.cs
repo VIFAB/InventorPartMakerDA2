@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autodesk.Forge.Core;
+using Autodesk.Forge;
 using Autodesk.Forge.DesignAutomation;
 using Autodesk.Forge.DesignAutomation.Model;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,8 @@ namespace Interaction
 
         internal DesignAutomationClient Client { get; }
         private static string PackagePathname { get; set; }
+        private static string ClientId { get; set; }
+        private static string ClientSecret { get; set; }
 
         /// <summary>
         /// Constructor.
@@ -28,6 +31,9 @@ namespace Interaction
         {
             Client = CreateDesignAutomationClient(configuration);
             PackagePathname = configuration.GetValue<string>("PackagePathname");
+            var credentials = configuration.GetSection("Forge").Get<ForgeConfiguration>();
+            ClientId = credentials.ClientId;
+            ClientSecret = credentials.ClientSecret;
         }
 
         /// <summary>
@@ -85,6 +91,7 @@ namespace Interaction
             {
                 ActivityId = await GetFullActivityId(),
                 Arguments = GetWorkItemArgs()
+                
             };
 
             // run WI and wait for completion
@@ -212,5 +219,34 @@ namespace Interaction
 
             return new ForgeService(new HttpClient(httpMessageHandler));
         }
+
+        private static dynamic InternalToken { get; set; }
+
+        public async Task<dynamic> GetInternalAsync()
+        {
+            if (InternalToken == null || InternalToken.ExpiresAt < DateTime.UtcNow)
+            {
+                InternalToken = await Get2LeggedTokenAsync(new Scope[] { Scope.BucketCreate, Scope.BucketRead, Scope.BucketDelete, Scope.DataRead, Scope.DataWrite, Scope.DataCreate, Scope.CodeAll });
+                InternalToken.ExpiresAt = DateTime.UtcNow.AddSeconds(InternalToken.expires_in);
+            }
+
+            //var access = InternalToken.access_token;
+            Console.WriteLine("Succesfully authorised with token" + InternalToken);
+            return InternalToken;
+           
+        }
+
+        
+
+        private async Task<dynamic> Get2LeggedTokenAsync(Scope[] scopes)
+        {
+            TwoLeggedApi oauth = new TwoLeggedApi();
+            string grantType = "client_credentials";
+            dynamic bearer = await oauth.AuthenticateAsync(ClientId, ClientSecret, grantType, scopes);
+            return bearer;
+        }
+
+        
+
     }
 }
